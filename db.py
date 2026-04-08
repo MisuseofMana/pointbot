@@ -25,21 +25,26 @@ def get_points(user_id):
     return result[0] if result else 0
 
 def update_points(user_id, amount):
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
+    conn = get_conn()
+    cur = conn.cursor()
 
-    current = get_points(user_id)
-    new_score = current + amount
-
-    c.execute("""
+    # Update or insert
+    cur.execute("""
         INSERT INTO points (user_id, score)
-        VALUES (?, ?)
-        ON CONFLICT(user_id)
-        DO UPDATE SET score = ?
-    """, (user_id, new_score, new_score))
+        VALUES (%s, %s)
+        ON CONFLICT (user_id)
+        DO UPDATE SET score = points.score + EXCLUDED.score
+    """, (user_id, amount))
+
+    # ALWAYS fetch explicitly
+    cur.execute("SELECT score FROM points WHERE user_id = %s", (user_id,))
+    result = cur.fetchone()
 
     conn.commit()
+    cur.close()
     conn.close()
+
+    return result[0] if result else 0
 
 def get_leaderboard(limit=10):
     conn = sqlite3.connect(DB_NAME)
