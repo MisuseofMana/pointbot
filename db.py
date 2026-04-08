@@ -3,6 +3,7 @@ import sqlite3
 DB_NAME = "points.db"
 
 def init_db():
+    print("Initializing database...")
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute("""
@@ -13,6 +14,7 @@ def init_db():
     """)
     conn.commit()
     conn.close()
+    print("Database initialized.")
 
 def get_points(user_id):
     conn = sqlite3.connect(DB_NAME)
