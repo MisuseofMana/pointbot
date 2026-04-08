@@ -3,6 +3,9 @@ from discord import app_commands
 from discord.ext import commands
 import os
 from db import init_db, get_points, update_points, get_leaderboard
+from dotenv import load_dotenv
+
+load_dotenv()  # loads DISCORD_TOKEN from .env
 
 intents = discord.Intents.default()
 intents.members = True
@@ -16,18 +19,21 @@ async def on_ready():
     await tree.sync()
     print(f"Logged in as {bot.user}")
 
+# /add
 @tree.command(name="add", description="Add points to a user")
 @app_commands.describe(member="User to give points to", amount="Points to add")
 async def add(interaction: discord.Interaction, member: discord.Member, amount: int):
-    new_score = update_points(str(member.id), abs(amount))  # only positive add
+    new_score = update_points(str(member.id), abs(amount))  # force positive
     await interaction.response.send_message(f"{member.mention} now has {new_score} points.")
 
+# /sub
 @tree.command(name="sub", description="Subtract points from a user")
 @app_commands.describe(member="User to subtract points from", amount="Points to subtract")
 async def sub(interaction: discord.Interaction, member: discord.Member, amount: int):
-    new_score = update_points(str(member.id), -abs(amount))  # subtract negative
+    new_score = update_points(str(member.id), -abs(amount))  # subtract
     await interaction.response.send_message(f"{member.mention} now has {new_score} points.")
 
+# /points
 @tree.command(name="points", description="Check your points or another user")
 @app_commands.describe(member="User to check (optional)")
 async def points(interaction: discord.Interaction, member: discord.Member = None):
@@ -35,6 +41,7 @@ async def points(interaction: discord.Interaction, member: discord.Member = None
     pts = get_points(str(member.id))
     await interaction.response.send_message(f"{member.mention} has {pts} points.")
 
+# /leaderboard
 @tree.command(name="leaderboard", description="Show top users")
 async def leaderboard(interaction: discord.Interaction):
     board = get_leaderboard()
