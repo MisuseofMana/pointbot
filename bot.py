@@ -42,7 +42,7 @@ async def add(interaction: discord.Interaction, user: discord.User, amount: int)
     c.execute("INSERT INTO points (user_id, points) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET points = points + ?",
               (str(user.id), amount, amount))
     conn.commit()
-    await interaction.response.send_message(f"Added {amount} points to {user.mention}")
+    await interaction.response.send_message(f"Added {amount} shrimp scampi points to {user.mention} :shrimpy:")
 
 # /sub command
 @bot.tree.command(name="sub", description="Subtract points from a user")
@@ -51,7 +51,7 @@ async def sub(interaction: discord.Interaction, user: discord.User, amount: int)
     c.execute("INSERT INTO points (user_id, points) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET points = points - ?",
               (str(user.id), -amount, -amount))  # Use negative to subtract
     conn.commit()
-    await interaction.response.send_message(f"Subtracted {amount} points from {user.mention}")
+    await interaction.response.send_message(f"Subtracted {amount} shrimp scampi points from {user.mention} :shrimpy:")
 
 # /points command
 @bot.tree.command(name="points", description="Check your points")
@@ -60,6 +60,6 @@ async def points(interaction: discord.Interaction, user: discord.User = None):
     target = user or interaction.user
     c.execute("SELECT points FROM points WHERE user_id = ?", (str(target.id),))
     result = c.fetchone()
-    await interaction.response.send_message(f"{target.mention} has {result[0] if result else 0} points")
+    await interaction.response.send_message(f"{target.mention} has {result[0] if result else 0} shrimp scampi points :shrimpy:")
 
 bot.run(TOKEN)
