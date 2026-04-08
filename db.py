@@ -3,13 +3,12 @@ import sqlite3
 DB_NAME = "points.db"
 
 def init_db():
-    print("Initializing database...")
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute("""
         CREATE TABLE IF NOT EXISTS points (
             user_id TEXT PRIMARY KEY,
-            score INTEGER
+            score INTEGER NOT NULL
         )
     """)
     conn.commit()
@@ -19,46 +18,37 @@ def init_db():
 def get_points(user_id):
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-
     c.execute("SELECT score FROM points WHERE user_id = ?", (user_id,))
     result = c.fetchone()
-
     conn.close()
     return result[0] if result else 0
 
 def update_points(user_id, amount):
-    conn = get_conn()
-    cur = conn.cursor()
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
 
-    # Update or insert
-    cur.execute("""
+    current = get_points(user_id)
+    new_score = current + amount
+
+    c.execute("""
         INSERT INTO points (user_id, score)
-        VALUES (%s, %s)
-        ON CONFLICT (user_id)
-        DO UPDATE SET score = points.score + EXCLUDED.score
-    """, (user_id, amount))
-
-    # ALWAYS fetch explicitly
-    cur.execute("SELECT score FROM points WHERE user_id = %s", (user_id,))
-    result = cur.fetchone()
+        VALUES (?, ?)
+        ON CONFLICT(user_id) DO UPDATE SET score=?
+    """, (user_id, new_score, new_score))
 
     conn.commit()
-    cur.close()
     conn.close()
-
-    return result[0] if result else 0
+    return new_score
 
 def get_leaderboard(limit=10):
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-
     c.execute("""
         SELECT user_id, score
         FROM points
         ORDER BY score DESC
         LIMIT ?
     """, (limit,))
-
     results = c.fetchall()
     conn.close()
     return results
